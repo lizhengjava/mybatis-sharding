@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE shardingConfig PUBLIC "-//mybatisSharding.iliz.cc//DTD mybatisSharding 1.0//EN"
-  "http://mybatisSharding.iliz.cc/dtd/mybatis-sharding-config.dtd">
-<shardingConfig>
-        <strategy tableName="test_table1" strategyClass="cc.iliz.mybatis.shading.strategy.TestTable1TableStrategy"/>
-</shardingConfig>
