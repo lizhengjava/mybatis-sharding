@@ -1,7 +1,5 @@
 package cc.iliz.mybatis.shading.parse;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 
 import org.junit.After;
@@ -26,11 +24,6 @@ public class XmlConfigParseTest {
 
 	@After
 	public void tearDown() throws Exception {
-	}
-
-	@Test
-	public void test() {
-		fail("Not yet implemented");
 	}
 
 	@Test

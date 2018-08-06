@@ -1,7 +1,5 @@
 package cc.iliz.mybatis.shading.sqltable;
 
-import static org.junit.Assert.fail;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,11 +30,6 @@ public class SqlTableParserTest {
 
 	@After
 	public void tearDown() throws Exception {
-	}
-
-	@Test
-	public void test() {
-		fail("Not yet implemented");
 	}
 
 	@Test

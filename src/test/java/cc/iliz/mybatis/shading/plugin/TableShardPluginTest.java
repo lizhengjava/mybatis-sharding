@@ -1,7 +1,6 @@
 package cc.iliz.mybatis.shading.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import javax.sql.DataSource;
 
@@ -47,11 +46,6 @@ public class TableShardPluginTest {
 
 	@After
 	public void tearDown() throws Exception {
-	}
-
-	@Test
-	public void test() {
-		fail("Not yet implemented");
 	}
 
 	@Test

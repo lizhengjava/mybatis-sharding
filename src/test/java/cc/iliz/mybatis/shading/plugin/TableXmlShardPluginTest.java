@@ -1,7 +1,6 @@
 package cc.iliz.mybatis.shading.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.Reader;
 import java.util.List;
@@ -40,12 +39,7 @@ public class TableXmlShardPluginTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-
-	@Test
-	public void test() {
-		fail("Not yet implemented");
-	}
-
+	
 	@Test
 	public void pluginTest() {
 		SqlSession session = sqlSessionFactory.openSession();
