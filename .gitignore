@@ -1,3 +1,6 @@
 /ibderby
 /target
 /.settings
+/*.log
+/*.classpath
+/*.project
