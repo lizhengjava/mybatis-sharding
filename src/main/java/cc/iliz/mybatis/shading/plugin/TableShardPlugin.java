@@ -80,9 +80,10 @@ public class TableShardPlugin implements Interceptor {
 		if(log.isDebugEnabled()){
 			log.debug("strategy scan config is ：[" + sconfig + "]");
 		}
+		long start = System.currentTimeMillis();
 		ResolverUtil<TableStrategy> resolverUtil = new ResolverUtil<TableStrategy>();
 		Set<Class<? extends TableStrategy>> tableStrategys = null;
-		if (config != null && config.trim().length() > 0) {
+		if (sconfig != null && sconfig.trim().length() > 0) {
 			tableStrategys = resolverUtil.findImplementations(TableStrategy.class, sconfig.split(",")).getClasses();
 
 		}else{
@@ -90,6 +91,10 @@ public class TableShardPlugin implements Interceptor {
 		}
 		StrategyRegister register = StrategyRegister.getInstance();
 		tableStrategys.stream().forEach(t->register.register(t));
+
+		if(log.isDebugEnabled()){
+			log.debug("================================table strategy config parse used " + (System.currentTimeMillis()-start));
+		}
 
 		if(log.isDebugEnabled()){
 			log.debug("table strategy config parse success.");

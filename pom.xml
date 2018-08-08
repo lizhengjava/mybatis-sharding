@@ -10,13 +10,13 @@
 	<name>mybatis-sharding</name>
 	<url>https://github.com/lizhengjava/mybatis-sharding</url>
 	<description>A sharding based on mybatis</description>
-	
+
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
 		<artifactId>oss-parent</artifactId>
 		<version>7</version>
 	</parent>
-	
+
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -24,7 +24,7 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	
+
 	<developers>
 		<developer>
 			<name>lizhengjava</name>
@@ -32,20 +32,26 @@
 			<url>https://github.com/lizhengjava</url>
 		</developer>
 	</developers>
-	
+
 	<scm>
 		<url>https://github.com/lizhengjava/mybatis-sharding</url>
 		<connection>scm:git:git@github.com:lizhengjava/mybatis-sharding.git</connection>
 		<developerConnection>scm:git:git@github.com:lizhengjava/mybatis-sharding.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 
 	<dependencies>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.39</version>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.apache.derby</groupId>
 			<artifactId>derby</artifactId>
