@@ -1,6 +1,6 @@
 package cc.iliz.mybatis.shading.plugin;
 
-import java.sql.Statement;
+import java.sql.Connection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -14,7 +14,6 @@ import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
 import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
-import org.apache.ibatis.session.ResultHandler;
 
 import cc.iliz.mybatis.shading.convert.ConverterFactory;
 import cc.iliz.mybatis.shading.convert.ConverterFactoryBuilder;
@@ -23,9 +22,7 @@ import cc.iliz.mybatis.shading.strategy.StrategyRegister;
 import cc.iliz.mybatis.shading.strategy.TableStrategy;
 import cc.iliz.mybatis.shading.util.ReflectionUtils;
 
-@Intercepts({ @Signature(type = StatementHandler.class, method = "update", args = { Statement.class }),
-		@Signature(type = StatementHandler.class, method = "batch", args = { Statement.class }),
-		@Signature(type = StatementHandler.class, method = "query", args = { Statement.class, ResultHandler.class }) })
+@Intercepts({ @Signature(type = StatementHandler.class, method = "prepare", args = { Connection.class, Integer.class }) })
 public class TableShardPlugin implements Interceptor {
 	private static final Log log = LogFactory.getLog(TableShardPlugin.class);
 	

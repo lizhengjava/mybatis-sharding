@@ -3,13 +3,10 @@ package cc.iliz.mybatis.shading.sqltable;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlCommandType;
 
 public class RouteSqlTableParser implements SqlTableParser {
-	private static final Log log = LogFactory.getLog(RouteSqlTableParser.class);
 
 	@Override
 	public String markShardingTable(String sql,Object param,List<ParameterMapping> parameterMappings) {
@@ -30,9 +27,6 @@ public class RouteSqlTableParser implements SqlTableParser {
 			break;
 		case UNKNOWN:
 		case FLUSH:
-		}
-		if(log.isDebugEnabled()){
-			log.debug("find table sharding sql [" + sql + "]'s parser is [" +sqlTableParser.getClass().getName()+"]");
 		}
 		if(sqlTableParser != null){
 			sql = sqlTableParser.markShardingTable(sql, param, parameterMappings);

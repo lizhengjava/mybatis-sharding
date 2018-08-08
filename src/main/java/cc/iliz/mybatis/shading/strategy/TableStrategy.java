@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.apache.ibatis.mapping.ParameterMapping;
 
+import cc.iliz.mybatis.shading.sqltable.SqlTableParser;
+
 public interface TableStrategy {
 	/**
 	 * 获取分表策略
@@ -12,5 +14,5 @@ public interface TableStrategy {
 	 * @param parameterMappings
 	 * @return
 	 */
-	String getShadeTableName(String tableName,Object param,List<ParameterMapping> parameterMappings);
+	String getShadeTableName(SqlTableParser parser,String tableName,Object param,List<ParameterMapping> parameterMappings);
 }

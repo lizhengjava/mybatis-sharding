@@ -30,8 +30,19 @@ mybatis-sharding支持xml和注解两种配置方式：
 		</plugin>
 	</plugins> 
 ```
+shardingConfig的配置方式为
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE shardingConfig PUBLIC "-//mybatisSharding.iliz.cc//DTD mybatisSharding 1.0//EN"
+  "http://mybatisSharding.iliz.cc/dtd/mybatis-sharding-config.dtd">
+<shardingConfig>
+        <strategy tableName="test_table1" strategyClass="cc.iliz.mybatis.shading.strategy.TestTable1TableStrategy"/>
+</shardingConfig>
+```
 2. 注解配置，在类中增加注解
-`@Strategy(tableName="表名")`
+```
+@Strategy(tableName="表名")
+```
 
 
 mybatis-sharding计划是实现分库分表，目前阶段只实现在分表，未来将增加spring整合，分库等功能，计划如下：

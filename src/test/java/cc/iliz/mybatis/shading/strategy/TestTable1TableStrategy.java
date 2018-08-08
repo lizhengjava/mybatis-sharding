@@ -7,12 +7,13 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.reflection.SystemMetaObject;
 
 import cc.iliz.mybatis.shading.annotation.Strategy;
+import cc.iliz.mybatis.shading.sqltable.SqlTableParser;
 
 @Strategy(tableName="app_test")
 public class TestTable1TableStrategy implements TableStrategy {
 
 	@Override
-	public String getShadeTableName(String tableName, Object param, List<ParameterMapping> parameterMappings) {
+	public String getShadeTableName(SqlTableParser parser,String tableName, Object param, List<ParameterMapping> parameterMappings) {
 		if(param != null){
 			MetaObject object = SystemMetaObject.forObject(param);
 			int id = Integer.parseInt(object.getValue("id").toString());

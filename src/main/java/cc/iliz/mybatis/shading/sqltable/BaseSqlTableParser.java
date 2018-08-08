@@ -17,15 +17,9 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 	@Override
 	public String markShardingTable(String sql,Object param,List<ParameterMapping> parameterMappings) {
 		Pattern pattern  = getRegPattern();
-		if(log.isDebugEnabled()){
-			log.debug("get pattern of  table sharding sql [" + sql + "] is [" + pattern.pattern() +"]");
-		}
 		Matcher matcher = pattern.matcher(sql);
 		while(matcher.find()){
 			String tableName = matcher.group(1);
-			if(log.isDebugEnabled()){
-				log.debug("get table name of  table sharding sql [" + sql + "] is [" + tableName +"]");
-			}
 			if(tableName != null && tableName.trim() != ""){
 				String newTableName = getRealTableName(tableName);
 				if(log.isDebugEnabled()){
@@ -33,7 +27,7 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 				}
 				TableStrategy strategy = StrategyRegister.getInstance().getTableStrategy(newTableName);
 				if(strategy != null){
-					newTableName = strategy.getShadeTableName(tableName, param, parameterMappings);
+					newTableName = strategy.getShadeTableName(this,tableName, param, parameterMappings);
 					sql = sql.replaceAll(tableName, newTableName);
 					//重置正则匹配sql
 					matcher.reset(sql);
