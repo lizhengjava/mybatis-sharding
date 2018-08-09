@@ -85,11 +85,9 @@ public class TableShardPlugin implements Interceptor {
 		if (sconfig != null && sconfig.trim().length() > 0) {
 			tableStrategys = resolverUtil.findImplementations(TableStrategy.class, sconfig.split(",")).getClasses();
 
-		}else{
-			tableStrategys = resolverUtil.findImplementations(TableStrategy.class, scanPackage.split(",")).getClasses();
+			StrategyRegister register = StrategyRegister.getInstance();
+			tableStrategys.stream().forEach(t->register.register(t));
 		}
-		StrategyRegister register = StrategyRegister.getInstance();
-		tableStrategys.stream().forEach(t->register.register(t));
 
 		if(log.isDebugEnabled()){
 			log.debug("table strategy config parse success.");
