@@ -17,7 +17,7 @@ public class BaseSqlConverter implements SqlConverter {
 	
 	/**
 	 * 可以通过实现自定义的SqlTableParserFactory来实现不同的Sql处理方式。
-	 * @return
+	 * @return default sqltableparser factory
 	 */
 	protected SqlTableParserFactory getSqlTableParserFactory(){
 		return new DefaultSqlTableParserFactory();

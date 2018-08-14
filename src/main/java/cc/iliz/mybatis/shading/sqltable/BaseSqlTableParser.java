@@ -37,12 +37,16 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 		return sql;
 	}
 	
+	/**
+	 * 取正则匹配模式
+	 * @return pattern
+	 */
 	public abstract Pattern getRegPattern();
 	
 	/**
 	 * 根据正则取出的字符取真正的表名，如果以后有变化子类重新实现这个方法
-	 * @param finder
-	 * @return
+	 * @param tableName original table name
+	 * @return the real table name
 	 */
 	protected String getRealTableName(String tableName){
 		return tableName.toLowerCase();

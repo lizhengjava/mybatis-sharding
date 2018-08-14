@@ -9,6 +9,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Strategy {
 	
-	/** 策略表名*/
+	/**
+	 * used for config strategy table name
+	 * @return strategy table name
+	 */
 	String tableName();
 }
