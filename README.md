@@ -2,6 +2,7 @@
 
 
 [![Apache License 2](https://img.shields.io/badge/license-ASF2-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0.txt)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/cc.iliz.mybatis.shading/mybatis-sharding/badge.svg)](https://maven-badges.herokuapp.com/maven-central/cc.iliz.mybatis.shading/mybatis-sharding)
 
 mybatis-sharding 是一个基于mybatis的分库分表插件，用户只需要在mybatis配置文件中增加上plugin配置属性，并根据自己的分表策略实现TableStrategy即可。
 
