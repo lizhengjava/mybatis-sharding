@@ -66,7 +66,7 @@ public class ReflectionUtils {
 	 * @param parameterTypes invoke method param types
 	 * @param parameters invoke method params
 	 * @return invoke result
-	 * @throws InvocationTargetException
+	 * @throws InvocationTargetException invoke error
 	 */
 	public static Object invokeMethod(final Object object, final String methodName, final Class<?>[] parameterTypes,
 			final Object[] parameters) throws InvocationTargetException {
