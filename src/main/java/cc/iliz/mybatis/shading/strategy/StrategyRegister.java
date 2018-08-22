@@ -57,6 +57,13 @@ public class StrategyRegister {
 		}
 	}
 	
+	public void register(TableStrategy tableStrategy){
+		Strategy strategy = tableStrategy.getClass().getDeclaredAnnotation(Strategy.class);
+		if(strategy != null){
+			register(strategy.tableName(),tableStrategy);
+		}
+	}
+	
 	public void register(String tableName,String className){
 		try {
 			Class<?> clazz = Class.forName(className);
