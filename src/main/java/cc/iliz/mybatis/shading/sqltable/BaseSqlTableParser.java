@@ -18,22 +18,7 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 	public String markShardingTable(String sql,Object param,List<ParameterMapping> parameterMappings) {
 		Pattern pattern  = getRegPattern();
 		Matcher matcher = pattern.matcher(sql);
-		while(matcher.find()){
-			String tableName = matcher.group(1);
-			if(tableName != null && tableName.trim() != ""){
-				String newTableName = getRealTableName(tableName);
-				if(log.isDebugEnabled()){
-					log.debug("get real table name of  table sharding sql [" + sql + "] is [" + newTableName +"]");
-				}
-				TableStrategy strategy = StrategyRegister.getInstance().getTableStrategy(newTableName);
-				if(strategy != null){
-					newTableName = strategy.getShadeTableName(this,tableName, param, parameterMappings);
-					sql = sql.replaceAll(tableName, newTableName);
-					//重置正则匹配sql
-					matcher.reset(sql);
-				}
-			}
-		}
+		sql = sqlConvert(matcher,param,parameterMappings);
 		return sql;
 	}
 	
@@ -42,6 +27,44 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 	 * @return pattern
 	 */
 	public abstract Pattern getRegPattern();
+	
+	/**
+	 * 将匹配的sql转成分库后的sql
+	 * @param matcher 正则匹配
+	 * @param param 本次执行参数值
+	 * @param parameterMappings 本次执行参数映射
+	 * @return
+	 */
+	protected String sqlConvert(Matcher matcher,Object param,List<ParameterMapping> parameterMappings){
+		StringBuffer sb = new StringBuffer();
+		while(matcher.find()){
+			String g0 = matcher.group();
+			String tableName = matcher.group(1);
+			String newTableName = tableNameConvert(getRealTableName(tableName).trim(),param,parameterMappings);
+			if(log.isDebugEnabled()){
+				log.debug("get real table name is [" + newTableName +"]");
+			}
+			g0 = g0.replaceAll(tableName, newTableName);
+			matcher.appendReplacement(sb, g0);
+		}
+		matcher.appendTail(sb);
+		return sb.toString();
+	}
+	
+	/**
+	 * 根据自定义策略转换表名
+	 * @param tableName 原表名
+	 * @param param 本次执行参数值
+	 * @param parameterMappings 本次执行参数映射
+	 * @return
+	 */
+	protected String tableNameConvert(String tableName,Object param,List<ParameterMapping> parameterMappings){
+		TableStrategy strategy = StrategyRegister.getInstance().getTableStrategy(tableName);
+		if(strategy != null){
+			return strategy.getShadeTableName(this,tableName, param, parameterMappings);
+		}
+		return tableName;
+	}
 	
 	/**
 	 * 根据正则取出的字符取真正的表名，如果以后有变化子类重新实现这个方法

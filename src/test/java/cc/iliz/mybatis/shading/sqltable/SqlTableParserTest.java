@@ -42,7 +42,7 @@ public class SqlTableParserTest {
 	@Test
 	public void SelectSqlWithStrategyTest(){
 		StrategyRegister.getInstance().register(TestTable1TableStrategy.class);
-		String sql = "select a.col_1,a.col_2,a.col_3 from test_table1 a where a.id in (select aid from test_table2 where col_1=1 and col_2=?) order by id desc";
+		String sql = "select a.col_1,a.col_2,a.col_3 from app_test a where a.id in (select aid from app_test where col_1=1 and col_2=?) order by id desc";
 		sql = sqlTableParser.markShardingTable(sql, new User() , null);
 		System.out.println(sql);
 	}

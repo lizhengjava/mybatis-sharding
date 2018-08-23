@@ -62,6 +62,7 @@ mybatis-sharding 是一个基于mybatis的分库分表插件，用户只需要�
 
 ---
 - V1.0
+
 mybatis-sharding支持xml和注解两种配置方式：
 1. xml配置方式，在configuration配置中增加plugin配置
 ```xml
