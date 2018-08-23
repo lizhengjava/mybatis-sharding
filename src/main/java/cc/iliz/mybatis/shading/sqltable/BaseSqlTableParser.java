@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 import org.apache.ibatis.mapping.ParameterMapping;
+import org.springframework.util.StringUtils;
 
 import cc.iliz.mybatis.shading.strategy.StrategyRegister;
 import cc.iliz.mybatis.shading.strategy.TableStrategy;
@@ -40,11 +41,13 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 		while(matcher.find()){
 			String g0 = matcher.group();
 			String tableName = matcher.group(1);
-			String newTableName = tableNameConvert(getRealTableName(tableName).trim(),param,parameterMappings);
-			if(log.isDebugEnabled()){
-				log.debug("get real table name is [" + newTableName +"]");
+			if(StringUtils.hasText(tableName)){
+				String newTableName = tableNameConvert(getRealTableName(tableName).trim(),param,parameterMappings);
+				if(log.isDebugEnabled()){
+					log.debug("get real table name is [" + newTableName +"]");
+				}
+				g0 = g0.replaceAll(tableName, newTableName);
 			}
-			g0 = g0.replaceAll(tableName, newTableName);
 			matcher.appendReplacement(sb, g0);
 		}
 		matcher.appendTail(sb);
