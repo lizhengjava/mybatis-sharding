@@ -22,6 +22,21 @@ mybatis-sharding 是一个基于mybatis的分库分表插件，用户只需要�
 ### 使用配置
 ---
 
+- V1.1.2
+Strategy注解中增加spring注解@Component，只需要加上@Strategy注解spring会自动扫描。
+```java
+   // @Component
+   @Strategy(tableName = "ss_shorturl_info")
+   public class ShortUrlTableStrategy implements TableStrategy{
+      @Override
+	  public String getShadeTableName(SqlTableParser parser, String tableName, Object param,
+			List<ParameterMapping> parameterMappings) {}
+   }
+```
+
+
+---
+
 - V1.1 
 
 1. 插件配置
@@ -38,7 +53,7 @@ mybatis-sharding 是一个基于mybatis的分库分表插件，用户只需要�
 2. 分表策略注入。分表策略注入有两种方式，一种是在类上加上spring注解@Component自动完成注入，另外一种是在插件配置中配置属性shardingScanPackage，推荐第一种方式。
 
    2.1 基于spring注解@Component（推荐）
-   ```xml
+   ```java
    @Component
    @Strategy(tableName = "ss_shorturl_info")
    public class ShortUrlTableStrategy implements TableStrategy{
