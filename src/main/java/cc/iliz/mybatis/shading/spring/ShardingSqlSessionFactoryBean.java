@@ -71,6 +71,7 @@ public class ShardingSqlSessionFactoryBean extends SqlSessionFactoryBean impleme
 			}
 		}
 		tableShardPlugin.setApplicationContext(this.applicationContext);
+		
 		sqlSessionFactory.getConfiguration().addInterceptor(tableShardPlugin);
 		return sqlSessionFactory;
 	}

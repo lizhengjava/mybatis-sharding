@@ -1,10 +1,8 @@
 package cc.iliz.mybatis.shading.sqltable;
 
-import java.util.List;
-
-import org.apache.ibatis.mapping.ParameterMapping;
+import cc.iliz.mybatis.shading.db.ShardingEntry;
 
 public interface SqlTableParser {
 
-	String markShardingTable(String sql,Object param,List<ParameterMapping> parameterMappings);
+	ShardingEntry markShardingTable(String sql, Object param);
 }

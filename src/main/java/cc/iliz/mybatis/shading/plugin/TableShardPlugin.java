@@ -1,15 +1,19 @@
 package cc.iliz.mybatis.shading.plugin;
 
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.sql.DataSource;
+
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
+import org.apache.ibatis.logging.jdbc.ConnectionLogger;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
@@ -18,9 +22,13 @@ import org.apache.ibatis.plugin.Signature;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
-import cc.iliz.mybatis.shading.convert.ConverterFactory;
-import cc.iliz.mybatis.shading.convert.ConverterFactoryBuilder;
+import cc.iliz.mybatis.shading.db.DbShardingConnectionProxy;
+import cc.iliz.mybatis.shading.db.ShardingContextHolder;
+import cc.iliz.mybatis.shading.db.ShardingEntry;
+import cc.iliz.mybatis.shading.db.ShardingProxyDataSource;
 import cc.iliz.mybatis.shading.parse.XmlConfigParser;
+import cc.iliz.mybatis.shading.sqltable.SqlTableParser;
+import cc.iliz.mybatis.shading.sqltable.SqlTableParserFactory;
 import cc.iliz.mybatis.shading.strategy.StrategyRegister;
 import cc.iliz.mybatis.shading.strategy.TableStrategy;
 import cc.iliz.mybatis.shading.util.ReflectionUtils;
@@ -47,6 +55,7 @@ public class TableShardPlugin implements Interceptor {
 
 	@Override
 	public Object intercept(Invocation invocation) throws Throwable {
+		//table sharding
 		if (invocation.getTarget() instanceof StatementHandler) {
 			if (!parsed.get()) {
 				parseAnnotationAuto();
@@ -56,17 +65,47 @@ public class TableShardPlugin implements Interceptor {
 			if (log.isDebugEnabled()) {
 				log.debug("table sharding orginal sql is [" + sql + "]");
 			}
-			ConverterFactory factory = ConverterFactoryBuilder.getConverterFactoryBuilder().getConverterFacotry();
-			sql = factory.getSqlConverter().convert(sql, handler.getBoundSql().getParameterMappings(),
-					handler.getBoundSql().getParameterObject());
+			SqlTableParser sqlTableParser = null;
+			try{
+				sqlTableParser = applicationContext.getBean(SqlTableParser.class);
+			}catch(Exception e){
+				log.debug("业务系统无SqlTableParser实现");
+			}
+			ShardingEntry entry = null;
+			if(sqlTableParser != null){
+				entry = sqlTableParser.markShardingTable(sql, handler.getBoundSql().getParameterObject());
+			}else{
+				entry = SqlTableParserFactory.getInstance().getSqlTableParser().markShardingTable(sql, handler.getBoundSql().getParameterObject());
+			}
 
 			if (log.isDebugEnabled()) {
 				log.debug("table sharding converted sql is [" + sql + "]");
 			}
-			ReflectionUtils.setFieldValue(handler.getBoundSql(), "sql", sql);
+			ReflectionUtils.setFieldValue(handler.getBoundSql(), "sql", entry.getSql());
+			
+			//db sharding
+			ShardingProxyDataSource datasource = entry.getProxy();
+			if(invocation.getArgs()[0] instanceof Connection && datasource != null){
+				Connection con = datasource.getConnection();
+				if(invocation.getArgs()[0] instanceof Proxy && invocation.getArgs()[0].toString().contains("ConnectionLogger")){
+					
+					ConnectionLogger logger = (ConnectionLogger)ReflectionUtils.getFieldValue(invocation.getArgs()[0], "h");
+					con = ConnectionLogger.newInstance(con, (Log)ReflectionUtils.getFieldValue(logger, "statementLog"), (int)ReflectionUtils.getFieldValue(logger, "queryStack"));
+				}
+				//proxy connection
+				invocation.getArgs()[0] = getShardingConnection(con);
+			}
 		}
 		return invocation.proceed();
 	}
+	
+	private Connection getShardingConnection(Connection con){
+		return (Connection) Proxy.newProxyInstance(
+				con.getClass().getClassLoader(),
+				new Class[] {Connection.class},
+				new DbShardingConnectionProxy(con));
+	}
+	
 
 	@Override
 	public Object plugin(Object target) {
@@ -135,6 +174,13 @@ public class TableShardPlugin implements Interceptor {
 
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
+
+		//分库数据源准备
+		Map<String, DataSource> datasources = applicationContext.getBeansOfType(DataSource.class);
+		datasources.entrySet().forEach(entry->{
+			ShardingProxyDataSource instance = ShardingProxyDataSource.instanceBuilder(entry.getValue(), 1);
+			ShardingContextHolder.addShardingProxyDataSource(instance);
+		});
 	}
 
 }

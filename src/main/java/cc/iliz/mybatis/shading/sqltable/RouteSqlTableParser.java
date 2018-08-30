@@ -1,17 +1,17 @@
 package cc.iliz.mybatis.shading.sqltable;
 
-import java.util.List;
 import java.util.Locale;
 
-import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlCommandType;
 
+import cc.iliz.mybatis.shading.db.ShardingEntry;
+
 public class RouteSqlTableParser implements SqlTableParser {
+	private BaseSqlTableParser sqlTableParser;
 
 	@Override
-	public String markShardingTable(String sql,Object param,List<ParameterMapping> parameterMappings) {
+	public ShardingEntry markShardingTable(String sql, Object param) {
 		SqlCommandType commandType = getSqlCommandType(sql);
-		BaseSqlTableParser sqlTableParser = null;
 		switch(commandType){
 		case SELECT:
 			sqlTableParser = new SelectSqlTableParser();
@@ -29,10 +29,10 @@ public class RouteSqlTableParser implements SqlTableParser {
 		case FLUSH:
 		}
 		if(sqlTableParser != null){
-			sql = sqlTableParser.markShardingTable(sql, param, parameterMappings);
+			return sqlTableParser.markShardingTable(sql, param);
 		}
 		
-		return sql;
+		return null;
 	}
 	
 	
@@ -50,4 +50,5 @@ public class RouteSqlTableParser implements SqlTableParser {
 			return SqlCommandType.UNKNOWN;
 		}
 	}
+
 }

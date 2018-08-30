@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
@@ -184,4 +186,20 @@ public class ReflectionUtils {
 		else
 			return new IllegalArgumentException(e);
 	}
+	
+	/**
+	 * 根据传入的类找到所有的实现接口
+	 * @param type 原类
+	 * @return 返回类的所有实现接口
+	 */
+	public static Class<?>[] getAllInterfaces(Class<?> type) {
+	    Set<Class<?>> interfaces = new HashSet<Class<?>>();
+	    while (type != null) {
+	      for (Class<?> c : type.getInterfaces()) {
+	          interfaces.add(c);
+	      }
+	      type = type.getSuperclass();
+	    }
+	    return interfaces.toArray(new Class<?>[interfaces.size()]);
+	  }
 }
