@@ -16,7 +16,7 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		System.out.println("+++++++++++++++++++++++++++++++++DbShardingConnectionProxy" );
+//		System.out.println("+++++++++++++++++++++++++++++++++DbShardingConnectionProxy" );
 		return method.invoke(target, args);
 	}
 

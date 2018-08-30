@@ -41,7 +41,6 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 	 * 将匹配的sql转成分库后的sql
 	 * @param matcher 正则匹配
 	 * @param param 本次执行参数值
-	 * @param datasource 本sql对应的数据源
 	 * @return 转换后的sql
 	 * @throws ShardingException 非同一库以及未找到数据源异常
 	 */
