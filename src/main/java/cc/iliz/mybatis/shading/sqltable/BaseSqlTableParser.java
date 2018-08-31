@@ -26,7 +26,7 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 		try {
 			entry = sqlConvert(matcher,param);
 		} catch (ShardingException e) {
-			log.error("非同一库以及未找到数据源异常,sql是: " + sql);
+			log.error("正在执行的sql: [" + sql + "] 无法分库分表，原因是：[" + e.getMessage() + "]");
 		}
 		return entry;
 	}
@@ -59,14 +59,8 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 				}else{
 					ShardingProxyDataSource tds = isSameDatabase(newTableName,ds);
 					if(ds != tds){
-						//TODO
-						throw new ShardingException("");
-					}else{
-						ds = tds;
+						throw new ShardingException("非同一数据库，无法执行分库操作");
 					}
-				}
-				if(log.isDebugEnabled()){
-					log.debug("get real table name is [" + newTableName +"]");
 				}
 				g0 = g0.replaceAll(tableName, newTableName);
 			}
@@ -76,7 +70,7 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 		if(ds != null){
 			entry.setProxy(ds);
 		}else{
-			throw new ShardingException("");
+			throw new ShardingException("未找到此sql中的数据表对应的数据源，请确定数据源配置。");
 		}
 		entry.setSql(sb.toString());
 		return entry;
@@ -85,19 +79,15 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 	private ShardingProxyDataSource isSameDatabase(String newTableName,ShardingProxyDataSource datasource){
 		//优先查看当前数据源表
 		if(datasource != null){
-			for(String name: datasource.getTableNames()){
-				if(name.trim().equalsIgnoreCase(newTableName)){
-					return datasource;
-				}
+			if(datasource.checkDataSourceByTableName(newTableName)){
+				return datasource;
 			}
 		}
 		
 		Set<ShardingProxyDataSource> set = ShardingContextHolder.getShardingProxyDataSource();
 		for(ShardingProxyDataSource s : set){
-			for(String name: s.getTableNames()){
-				if(name.trim().equalsIgnoreCase(newTableName)){
-					return s;
-				}
+			if(s.checkDataSourceByTableName(newTableName)){
+				return s;
 			}
 		}
 		

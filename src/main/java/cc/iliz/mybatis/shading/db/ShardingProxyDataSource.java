@@ -29,7 +29,7 @@ public class ShardingProxyDataSource implements DataSource,Comparable<ShardingPr
 	}
 
 	public boolean checkDataSourceByTableName(String name){
-		return tableNames.contains(name);
+		return tableNames.contains(name.trim().toLowerCase());
 	}
 	
 	private void scanDatasourceScheme(){
@@ -41,7 +41,7 @@ public class ShardingProxyDataSource implements DataSource,Comparable<ShardingPr
 				rs = meta.getTables(null, null, null, new String[] { "TABLE","VIEW" });
 				Set<String> sets = new HashSet<String>();
 				while (rs.next()) {  
-					sets.add(rs.getString(3));
+					sets.add(rs.getString(3).trim().toLowerCase());
 				}
 				this.tableNames = sets;
 			} catch (SQLException e) {

@@ -78,23 +78,30 @@ public class TableShardPlugin implements Interceptor {
 				entry = SqlTableParserFactory.getInstance().getSqlTableParser().markShardingTable(sql, handler.getBoundSql().getParameterObject());
 			}
 
-			if (log.isDebugEnabled()) {
-				log.debug("table sharding converted sql is [" + sql + "]");
-			}
-			ReflectionUtils.setFieldValue(handler.getBoundSql(), "sql", entry.getSql());
-			
-			//db sharding
-			ShardingProxyDataSource datasource = entry.getProxy();
-			if(invocation.getArgs()[0] instanceof Connection && datasource != null){
-				Connection con = datasource.getConnection();
-				if(invocation.getArgs()[0] instanceof Proxy && invocation.getArgs()[0].toString().contains("ConnectionLogger")){
-					
-					ConnectionLogger logger = (ConnectionLogger)ReflectionUtils.getFieldValue(invocation.getArgs()[0], "h");
-					con = ConnectionLogger.newInstance(con, (Log)ReflectionUtils.getFieldValue(logger, "statementLog"), (int)ReflectionUtils.getFieldValue(logger, "queryStack"));
+			if(entry != null){
+				if (log.isDebugEnabled()) {
+					log.debug("table sharding converted sql is [" + entry.getSql() + "]");
 				}
-				//proxy connection
-				invocation.getArgs()[0] = getShardingConnection(con);
+				ReflectionUtils.setFieldValue(handler.getBoundSql(), "sql", entry.getSql());
+				
+				//db sharding
+				ShardingProxyDataSource datasource = entry.getProxy();
+				Object arg = invocation.getArgs()[0];
+				if(arg != null &&  arg instanceof Connection && datasource != null){
+					Connection con = datasource.getConnection();
+					if(Proxy.isProxyClass(arg.getClass()) ){
+						Object ih = ReflectionUtils.getFieldValue(arg, "h");
+						if(ih instanceof ConnectionLogger){
+							ConnectionLogger logger = (ConnectionLogger)ih;
+							con = ConnectionLogger.newInstance(con, (Log)ReflectionUtils.getFieldValue(logger, "statementLog"), (int)ReflectionUtils.getFieldValue(logger, "queryStack"));
+						}
+					}
+					//proxy connection
+					invocation.getArgs()[0] = getShardingConnection(con);
+				}
+				
 			}
+			
 		}
 		return invocation.proceed();
 	}

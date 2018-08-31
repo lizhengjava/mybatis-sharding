@@ -47,16 +47,16 @@ public class XmlConfigParser {
 
 	private void parseShardingConfig(XNode root) {
 		if (root != null) {
-			String tableName = root.getStringAttribute("tableName");
+			String tableNames = root.getStringAttribute("tableName");
 			String strategyClass = root.getStringAttribute("strategyClass");
 
 			if(log.isDebugEnabled()){
-				log.debug("table sharding xml config table name is [" + tableName + "]");
+				log.debug("table sharding xml config table name is [" + tableNames + "]");
 				log.debug("table sharding xml config strategy class is [" + strategyClass + "]");
 			}
 
 			StrategyRegister register = StrategyRegister.getInstance();
-			register.register(tableName, strategyClass);
+			register.register(tableNames, strategyClass);
 		}
 	}
 }

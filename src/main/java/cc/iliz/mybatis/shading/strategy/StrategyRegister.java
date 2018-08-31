@@ -1,10 +1,12 @@
 package cc.iliz.mybatis.shading.strategy;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
+import org.springframework.util.StringUtils;
 
 import cc.iliz.mybatis.shading.annotation.Strategy;
 
@@ -18,32 +20,55 @@ public class StrategyRegister {
 	public static StrategyRegister getInstance(){
 		return instance;
 	}
-
-	public void register(String tableName,TableStrategy tableStrategy){
-		Strategy strategy = tableStrategy.getClass().getDeclaredAnnotation(Strategy.class);
+	
+	public void register(Strategy strategy,TableStrategy tableStrategy){
 		synchronized(register){
 			if(strategy != null){
-				register.put(strategy.tableName().toLowerCase(), tableStrategy);
+				String[] tableNames = strategy.tableName().split(",");
+				Arrays.stream(tableNames).forEach(name -> {
+					register.put(name.toLowerCase(), tableStrategy);
+					if (log.isDebugEnabled()) {
+						log.debug("Table name [" + name.toLowerCase() + "] registe sharding strategy [" + tableStrategy.getClass().getName() + "] success");
+					}
+				});
+				
+			}
+		}
+	}
 
-				if (log.isDebugEnabled()) {
-					log.debug("Table name [" + strategy.tableName().toLowerCase() + "] registe sharding strategy [" + tableStrategy.getClass().getName() + "] success");
-				}
-			}else{
-				register.put(tableName.toLowerCase(), tableStrategy);
-				if (log.isDebugEnabled()) {
-					log.debug("Table name [" + tableName.toLowerCase() + "] registe sharding strategy [" + tableStrategy.getClass().getName() + "] success");
-				}
+	public void register(String tableNames,TableStrategy tableStrategy){
+		synchronized(register){
+			if(StringUtils.hasText(tableNames)){
+				String[] tableName = tableNames.split(",");
+				Arrays.stream(tableName).forEach(name -> {
+					register.put(name.toLowerCase(), tableStrategy);
+					if (log.isDebugEnabled()) {
+						log.debug("Table name [" + name.toLowerCase() + "] registe sharding strategy [" + tableStrategy.getClass().getName() + "] success");
+					}
+				});
 			}
 			
 		}
 	}
 	
-	public void register(String tableName,Class<?> clazz){
+	public void register(String tableNames,Class<?> clazz){
 		try {
 			Object obj = clazz.newInstance();
 			if(obj instanceof TableStrategy){
 				TableStrategy tableStrategy = (TableStrategy)obj;
-				register(tableName,tableStrategy);
+				register(tableNames,tableStrategy);
+			}
+		} catch (InstantiationException | IllegalAccessException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void register(Strategy strategy,Class<?> clazz){
+		try {
+			Object obj = clazz.newInstance();
+			if(obj instanceof TableStrategy){
+				TableStrategy tableStrategy = (TableStrategy)obj;
+				register(strategy,tableStrategy);
 			}
 		} catch (InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -53,21 +78,21 @@ public class StrategyRegister {
 	public void register(Class<?> clazz){
 		Strategy strategy = clazz.getDeclaredAnnotation(Strategy.class);
 		if(strategy != null){
-			register(strategy.tableName(),clazz);
+			register(strategy,clazz);
 		}
 	}
 	
 	public void register(TableStrategy tableStrategy){
 		Strategy strategy = tableStrategy.getClass().getDeclaredAnnotation(Strategy.class);
 		if(strategy != null){
-			register(strategy.tableName(),tableStrategy);
+			register(strategy,tableStrategy);
 		}
 	}
 	
-	public void register(String tableName,String className){
+	public void register(String tableNames,String className){
 		try {
 			Class<?> clazz = Class.forName(className);
-			register(tableName,clazz);
+			register(tableNames,clazz);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
