@@ -19,78 +19,26 @@ mybatis-sharding 是一个基于mybatis的分库分表插件，用户只需要�
 		return tableName;
 ```
 
+- 自动实现分库（一条sql中的数据表须对应同一数据源）
+在系统中可以配置多个数据库，在系统初始化时会自动查询这些数据源中存储的表名，在进行数据库操作时会查询分表后对应的数据库是在哪一个数据库中（不同库有同一表优化级设置目前未实现），然后使用对应的数据源连接。
+
 ### 使用配置
----
 
-- V1.1.2
-Strategy注解中增加spring注解@Component，只需要加上@Strategy注解spring会自动扫描。
-```java
-   // @Component
-   @Strategy(tableName = "ss_shorturl_info")
-   public class ShortUrlTableStrategy implements TableStrategy{
-      @Override
-	  public String getShadeTableName(SqlTableParser parser, String tableName, Object param,
-			List<ParameterMapping> parameterMappings) {}
-   }
-```
-
-
----
-
-- V1.1 
-
-1. 插件配置
-本版本与mybatis-spring整合，只需要将sqlSessionFactory的class类使用**cc.iliz.mybatis.shading.spring.ShardingSqlSessionFactoryBean**即可,示例如下：
-```xml
-    <!-- MyBatis配置 -->
-    <bean id="sqlSessionFactory" class="cc.iliz.mybatis.shading.spring.ShardingSqlSessionFactoryBean">
-        <property name="dataSource" ref="dataSource" />
-        <property name="configLocation" value="classpath:/mybatis/mybatis-config.xml" />
-        <property name="mapperLocations" value="classpath:mybatis/*/*.xml" />
-    </bean>
-```
-
-2. 分表策略注入。分表策略注入有两种方式，一种是在类上加上spring注解@Component自动完成注入，另外一种是在插件配置中配置属性shardingScanPackage，推荐第一种方式。
-
-   2.1 基于spring注解@Component（推荐）
-   ```java
-   @Component
-   @Strategy(tableName = "ss_shorturl_info")
-   public class ShortUrlTableStrategy implements TableStrategy{
-      @Override
-	  public String getShadeTableName(SqlTableParser parser, String tableName, Object param,
-			List<ParameterMapping> parameterMappings) {}
-   }
-   ```
-   
-   2.2 插件配置中配置属性shardingScanPackage
+1. 插件配置，
+插件配置需要使用ShardingSqlSessionFactoryBean代替mybatis-spring的MapperScannerConfigurer即可。
    ```xml
    <!-- MyBatis配置 -->
     <bean id="sqlSessionFactory" class="cc.iliz.mybatis.shading.spring.ShardingSqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource" />
         <property name="configLocation" value="classpath:/mybatis/mybatis-config.xml" />
         <property name="mapperLocations" value="classpath:mybatis/*/*.xml" />
-        <property name="shardingScanPackage" value="com.iliz" /> 
     </bean>
    ```
 
+2. 实现分表策略
 
----
-- V1.0
-
-mybatis-sharding支持xml和注解两种配置方式：
-1. xml配置方式，在configuration配置中增加plugin配置
-```xml
-	<!-- 插件配置 -->
-	<plugins>
-		<plugin interceptor="cc.iliz.mybatis.shading.plugin.TableShardPlugin">
-			<!-- 基于XML和注解两种配置，可以只使用一种配置即可，如果不配置，系统会使用扫描默认配置的包 ，如com,org,edu,cn,gov,io,cc-->
-			<property name="shardingConfig" value="sharding_config1.xml"/>
-			<property name="packageNames" value="cc.iliz.mybatis.shading"/>
-		</plugin>
-	</plugins> 
-```
-shardingConfig的配置方式为
+分表策略需要实现TableStrategy接口。分表策略注入有两种方式，一种是在类上加上spring注解@Component自动完成注入，另外一种是在插件配置中配置属性shardingScanPackage，推荐注解方式。，配置策略针对的数据库表名可以是多个表名使用同一策略，需使用逗号（,）隔开
+- xml方式配置（不建议使用这种方式）
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE shardingConfig PUBLIC "-//mybatisSharding.iliz.cc//DTD mybatisSharding 1.0//EN"
@@ -99,18 +47,26 @@ shardingConfig的配置方式为
         <strategy tableName="test_table1" strategyClass="cc.iliz.mybatis.shading.strategy.TestTable1TableStrategy"/>
 </shardingConfig>
 ```
-2. 注解配置，在类中增加注解
+- 注解配置
 ```
 @Strategy(tableName="表名")
 ```
 
-
-mybatis-sharding计划是实现分库分表，目前阶段只实现在分表，未来将增加spring整合，分库等功能，计划如下：
-
-- [x] 基于mybatis实现分表
-- [x] 整合mybatis-spring
-- [ ] 实现一次单库操作的分库
-- [ ] 实现多库联合的分库操作
+3. 配置多个数据源
 
 
-如有问题或建设请邮件 lizhengjava@126.com，备注：mybatis-sharding。
+---
+
+### 各版本说明及配置变化
+
+- V2.1 优化V2.0，增加多分表表名支持
+- V2.0 优化V1.X，并增加了自动分库功能。
+- V1.1 整合mybatis-spring
+- V1.0 实现分表功能
+
+### 未来实现计划
+
+- 实现自定义分库路由
+- 实现数据源优化级
+
+如有问题或建设请邮件 lizhengjava@126.com。
