@@ -51,4 +51,10 @@ public class RouteSqlTableParser implements SqlTableParser {
 		}
 	}
 
+
+	@Override
+	public SqlCommandType getSqlCommandType() {
+		return sqlTableParser.getSqlCommandType();
+	}
+
 }

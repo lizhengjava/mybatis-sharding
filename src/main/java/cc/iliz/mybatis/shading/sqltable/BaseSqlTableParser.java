@@ -1,33 +1,27 @@
 package cc.iliz.mybatis.shading.sqltable;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
+import org.apache.ibatis.mapping.SqlCommandType;
 import org.springframework.util.StringUtils;
 
-import cc.iliz.mybatis.shading.db.ShardingContextHolder;
+import cc.iliz.mybatis.shading.db.DbShardingConnectionProxy;
 import cc.iliz.mybatis.shading.db.ShardingEntry;
-import cc.iliz.mybatis.shading.db.ShardingProxyDataSource;
-import cc.iliz.mybatis.shading.exception.ShardingException;
 import cc.iliz.mybatis.shading.strategy.StrategyRegister;
 import cc.iliz.mybatis.shading.strategy.TableStrategy;
 
 public abstract class BaseSqlTableParser implements SqlTableParser {
-	private static final Log log = LogFactory.getLog(BaseSqlTableParser.class);
+//	private static final Log log = LogFactory.getLog(BaseSqlTableParser.class);
+	private SqlCommandType sqlCommandType ;
 
 	@Override
 	public ShardingEntry markShardingTable(String sql, Object param) {
 		Pattern pattern  = getRegPattern();
 		Matcher matcher = pattern.matcher(sql);
-		ShardingEntry entry = null;
-		try {
-			entry = sqlConvert(matcher,param);
-		} catch (ShardingException e) {
-			log.error("正在执行的sql: [" + sql + "] 无法分库分表，原因是：[" + e.getMessage() + "]");
-		}
+		ShardingEntry entry = sqlConvert(matcher,param);
 		return entry;
 	}
 	
@@ -42,56 +36,30 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 	 * @param matcher 正则匹配
 	 * @param param 本次执行参数值
 	 * @return 转换后的sql
-	 * @throws ShardingException 非同一库以及未找到数据源异常
 	 */
-	protected ShardingEntry sqlConvert(Matcher matcher,Object param) throws ShardingException{
+	protected ShardingEntry sqlConvert(Matcher matcher,Object param){
 		ShardingEntry entry = new ShardingEntry();
 		StringBuffer sb = new StringBuffer();
-		ShardingProxyDataSource ds = null;
+		Set<String> names = new HashSet<>();
+		String dbName = null;
 		while(matcher.find()){
 			String g0 = matcher.group();
 			String tableName = matcher.group(1);
 			if(StringUtils.hasText(tableName)){
 				String newTableName = tableNameConvert(getRealTableName(tableName).trim(),param);
+				dbName = DbShardingConnectionProxy.getDataSourceNameByTableName(newTableName,dbName);
+				entry.addItemToDbTables(dbName, newTableName);
 				//是否同一库检查
-				if(ds == null){
-					ds = isSameDatabase(newTableName,null);
-				}else{
-					ShardingProxyDataSource tds = isSameDatabase(newTableName,ds);
-					if(ds != tds){
-						throw new ShardingException("非同一数据库，无法执行分库操作");
-					}
-				}
+				names.add(newTableName);
 				g0 = g0.replaceAll(tableName, newTableName);
 			}
 			matcher.appendReplacement(sb, g0);
 		}
 		matcher.appendTail(sb);
-		if(ds != null){
-			entry.setProxy(ds);
-		}else{
-			throw new ShardingException("未找到此sql中的数据表对应的数据源，请确定数据源配置。");
-		}
+		entry.setNames(names);
+		entry.setSqlCommandType(this.getSqlCommandType());
 		entry.setSql(sb.toString());
 		return entry;
-	}
-	
-	private ShardingProxyDataSource isSameDatabase(String newTableName,ShardingProxyDataSource datasource){
-		//优先查看当前数据源表
-		if(datasource != null){
-			if(datasource.checkDataSourceByTableName(newTableName)){
-				return datasource;
-			}
-		}
-		
-		Set<ShardingProxyDataSource> set = ShardingContextHolder.getShardingProxyDataSource();
-		for(ShardingProxyDataSource s : set){
-			if(s.checkDataSourceByTableName(newTableName)){
-				return s;
-			}
-		}
-		
-		return null;
 	}
 	
 	/**
@@ -117,4 +85,12 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 		return tableName.toLowerCase();
 	}
 
+	@Override
+	public SqlCommandType getSqlCommandType() {
+		return sqlCommandType;
+	}
+
+	public void setSqlCommandType(SqlCommandType sqlCommandType) {
+		this.sqlCommandType = sqlCommandType;
+	}
 }

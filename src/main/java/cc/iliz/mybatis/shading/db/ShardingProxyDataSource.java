@@ -6,6 +6,7 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -15,16 +16,20 @@ import javax.sql.DataSource;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
-public class ShardingProxyDataSource implements DataSource,Comparable<ShardingProxyDataSource> {
+public class ShardingProxyDataSource implements DataSource,Comparator<ShardingProxyDataSource>,Comparable<ShardingProxyDataSource> {
 	private static final Log log = LogFactory.getLog(ShardingProxyDataSource.class);
 	private DataSource dataSource;
+	private String datasourceName;
 	private Set<String> tableNames;
+	private boolean ReadOnly;
 	private Integer order = 1;
 	
-	public static ShardingProxyDataSource instanceBuilder(DataSource dataSource,Integer order){
+	public static ShardingProxyDataSource instanceBuilder(String datasourceName,DataSource dataSource,Integer order,boolean readOnly){
 		ShardingProxyDataSource instance = new ShardingProxyDataSource();
 		instance.setDataSource(dataSource);
+		instance.setDatasourceName(datasourceName);
 		instance.setOrder(order);
+		instance.setReadOnly(readOnly);
 		return instance;
 	}
 
@@ -32,7 +37,7 @@ public class ShardingProxyDataSource implements DataSource,Comparable<ShardingPr
 		return tableNames.contains(name.trim().toLowerCase());
 	}
 	
-	private void scanDatasourceScheme(){
+	public void scanDatasourceScheme(){
 			Connection conn = null;
 			ResultSet rs = null;
 			try {
@@ -103,6 +108,8 @@ public class ShardingProxyDataSource implements DataSource,Comparable<ShardingPr
 
 	@Override
 	public Connection getConnection(String username, String password) throws SQLException {
+		
+		
 		return dataSource.getConnection(username, password);
 	}
 
@@ -128,9 +135,31 @@ public class ShardingProxyDataSource implements DataSource,Comparable<ShardingPr
 		return order;
 	}
 
+	public String getDatasourceName() {
+		return datasourceName;
+	}
+
+	public void setDatasourceName(String datasourceName) {
+		this.datasourceName = datasourceName;
+	}
+
+	public boolean isReadOnly() {
+		return ReadOnly;
+	}
+
+	public void setReadOnly(boolean readOnly) {
+		ReadOnly = readOnly;
+	}
+
 	@Override
 	public int compareTo(ShardingProxyDataSource o) {
 		return o.getOrder().compareTo(getOrder());
+	}
+
+	@Override
+	public int compare(ShardingProxyDataSource o1, ShardingProxyDataSource o2) {
+		// TODO Auto-generated method stub
+		return o2.getOrder().compareTo(o1.getOrder());
 	}
 	
 }

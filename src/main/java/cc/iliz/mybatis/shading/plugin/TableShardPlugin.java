@@ -13,7 +13,6 @@ import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
-import org.apache.ibatis.logging.jdbc.ConnectionLogger;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.plugin.Intercepts;
 import org.apache.ibatis.plugin.Invocation;
@@ -22,15 +21,17 @@ import org.apache.ibatis.plugin.Signature;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.StringUtils;
 
+import cc.iliz.mybatis.shading.db.DbShardingConfig;
 import cc.iliz.mybatis.shading.db.DbShardingConnectionProxy;
-import cc.iliz.mybatis.shading.db.ShardingContextHolder;
 import cc.iliz.mybatis.shading.db.ShardingEntry;
 import cc.iliz.mybatis.shading.db.ShardingProxyDataSource;
 import cc.iliz.mybatis.shading.parse.XmlConfigParser;
 import cc.iliz.mybatis.shading.sqltable.SqlTableParser;
 import cc.iliz.mybatis.shading.sqltable.SqlTableParserFactory;
+import cc.iliz.mybatis.shading.strategy.DbStrategy;
 import cc.iliz.mybatis.shading.strategy.StrategyRegister;
 import cc.iliz.mybatis.shading.strategy.TableStrategy;
+import cc.iliz.mybatis.shading.util.Constants;
 import cc.iliz.mybatis.shading.util.ReflectionUtils;
 
 @Intercepts({
@@ -85,19 +86,18 @@ public class TableShardPlugin implements Interceptor {
 				ReflectionUtils.setFieldValue(handler.getBoundSql(), "sql", entry.getSql());
 				
 				//db sharding
-				ShardingProxyDataSource datasource = entry.getProxy();
 				Object arg = invocation.getArgs()[0];
-				if(arg != null &&  arg instanceof Connection && datasource != null){
-					Connection con = datasource.getConnection();
-					if(Proxy.isProxyClass(arg.getClass()) ){
-						Object ih = ReflectionUtils.getFieldValue(arg, "h");
-						if(ih instanceof ConnectionLogger){
-							ConnectionLogger logger = (ConnectionLogger)ih;
-							con = ConnectionLogger.newInstance(con, (Log)ReflectionUtils.getFieldValue(logger, "statementLog"), (int)ReflectionUtils.getFieldValue(logger, "queryStack"));
-						}
+				if(arg != null &&  arg instanceof Connection ){
+					DbStrategy dbStrategy = null;
+					try{
+						dbStrategy = applicationContext.getBean(DbStrategy.class);
+					}catch(Exception e){
+						log.debug("业务系统无dbStrategy实现");
 					}
+					
+					DbShardingConnectionProxy proxy = new DbShardingConnectionProxy(entry,dbStrategy);
 					//proxy connection
-					invocation.getArgs()[0] = getShardingConnection(con);
+					invocation.getArgs()[0] = getShardingConnection(proxy);
 				}
 				
 			}
@@ -106,11 +106,11 @@ public class TableShardPlugin implements Interceptor {
 		return invocation.proceed();
 	}
 	
-	private Connection getShardingConnection(Connection con){
+	private Connection getShardingConnection(DbShardingConnectionProxy handler){
 		return (Connection) Proxy.newProxyInstance(
-				con.getClass().getClassLoader(),
+				DbShardingConnectionProxy.class.getClassLoader(),
 				new Class[] {Connection.class},
-				new DbShardingConnectionProxy(con));
+				handler);
 	}
 	
 
@@ -181,12 +181,27 @@ public class TableShardPlugin implements Interceptor {
 
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
-
+		
+		DbShardingConfig config = null;
+		try{
+			config = applicationContext.getBean(DbShardingConfig.class);
+		}catch(Exception e){
+			log.debug("业务系统无多数据源配置");
+		}
+		final DbShardingConfig c = config;
+		
 		//分库数据源准备
 		Map<String, DataSource> datasources = applicationContext.getBeansOfType(DataSource.class);
 		datasources.entrySet().forEach(entry->{
-			ShardingProxyDataSource instance = ShardingProxyDataSource.instanceBuilder(entry.getValue(), 1);
-			ShardingContextHolder.addShardingProxyDataSource(instance);
+			Integer od = Constants.DEFAULT_SHARDING_DB_ORDER ;
+			Boolean readOnly = false;
+			if(c != null){
+				od = c.getDbOrder(entry.getKey());
+				readOnly = c.isDbOnlyRead(entry.getKey());
+			}
+			
+			ShardingProxyDataSource instance = ShardingProxyDataSource.instanceBuilder(entry.getKey(),entry.getValue(), od,readOnly);
+			DbShardingConnectionProxy.addShardingProxyDataSource(instance);
 		});
 	}
 
