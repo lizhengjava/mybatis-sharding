@@ -44,7 +44,7 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 			}).collect(Collectors.toList());
 			
 			Collections.sort(list);
-			return list.get(0).getDatasourceName();
+			return list.size() > 0 ? list.get(0).getDatasourceName() : null;
 		}
 		return null;
 	}
@@ -104,10 +104,25 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 				String dbName = dbStrategy.getShardingDataSource(shardingEntry);
 				return getDataSourceByName(dbName).getConnection();
 			}else{
+				//无自定义数据源处理
 				Map<String,Set<String>> map = shardingEntry.getDbTables();
+				
 				Iterator<Entry<String,Set<String>>> it = map.entrySet().iterator();
-				if(it.hasNext()){
+				//如果只有一条记录直接取结果,否则取最多条表记录
+				if(map.size() == 1){
 					return getDataSourceByName(it.next().getKey()).getConnection();
+				}else if(map.size() > 1){
+					//如果大于一条记录，取sql表最多的一个
+					int max = 0;
+					Entry<String,Set<String>> et = null;
+					while(it.hasNext()){
+						Entry<String,Set<String>> te = it.next();
+						if(te.getValue().size() > max){
+							max = te.getValue().size();
+							et = te;
+						}
+					}
+					return getDataSourceByName(et.getKey()).getConnection();
 				}
 			}
 		}catch(Exception e){

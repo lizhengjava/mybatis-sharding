@@ -16,7 +16,7 @@ import javax.sql.DataSource;
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
 
-public class ShardingProxyDataSource implements DataSource,Comparator<ShardingProxyDataSource>,Comparable<ShardingProxyDataSource> {
+public class ShardingProxyDataSource implements DataSource,Comparable<ShardingProxyDataSource>,Comparator<ShardingProxyDataSource> {
 	private static final Log log = LogFactory.getLog(ShardingProxyDataSource.class);
 	private DataSource dataSource;
 	private String datasourceName;
@@ -158,8 +158,7 @@ public class ShardingProxyDataSource implements DataSource,Comparator<ShardingPr
 
 	@Override
 	public int compare(ShardingProxyDataSource o1, ShardingProxyDataSource o2) {
-		// TODO Auto-generated method stub
-		return o2.getOrder().compareTo(o1.getOrder());
+		return o2.getOrder().compareTo(o1.getOrder()) == 0 ? o1.getDatasourceName().compareTo(o2.getDatasourceName()) : o2.getOrder().compareTo(o1.getOrder());
 	}
 	
 }
