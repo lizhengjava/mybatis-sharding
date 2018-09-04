@@ -15,15 +15,19 @@ public class RouteSqlTableParser implements SqlTableParser {
 		switch(commandType){
 		case SELECT:
 			sqlTableParser = new SelectSqlTableParser();
+			sqlTableParser.setSqlCommandType(SqlCommandType.SELECT);
 			break;
 		case UPDATE:
 			sqlTableParser = new UpdateSqlTableParser();
+			sqlTableParser.setSqlCommandType(SqlCommandType.UPDATE);
 			break;
 		case DELETE:
 			sqlTableParser = new DeleteSqlTableParser();
+			sqlTableParser.setSqlCommandType(SqlCommandType.DELETE);
 			break;
 		case INSERT:
 			sqlTableParser = new InsertSqlTableParser();
+			sqlTableParser.setSqlCommandType(SqlCommandType.INSERT);
 			break;
 		case UNKNOWN:
 		case FLUSH:
