@@ -26,6 +26,7 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 	private static Set<ShardingProxyDataSource> dataSourceHolderSet = new TreeSet<ShardingProxyDataSource>(new ShardingProxyDataSource());
 	private ShardingEntry shardingEntry;
 	private DbStrategy dbStrategy;
+	private Object obj;
 	
 	public static void addShardingProxyDataSource(ShardingProxyDataSource value){
 		dataSourceHolderSet.add(value);
@@ -75,9 +76,10 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 	
 	public DbShardingConnectionProxy(){}
 	
-	public DbShardingConnectionProxy(ShardingEntry shardingEntry,DbStrategy dbStrategy){
+	public DbShardingConnectionProxy(ShardingEntry shardingEntry,DbStrategy dbStrategy,Object obj){
 		this.shardingEntry = shardingEntry;
 		this.dbStrategy = dbStrategy;
+		this.obj = obj;
 	}
 
 	public void setTarget(ShardingEntry shardingEntry) {
@@ -91,7 +93,12 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		Connection con = getTarget();
-		return method.invoke(con, args);
+		if(con != null){
+			return method.invoke(con, args);
+		}else{
+			return method.invoke(obj, args);
+		}
+		
 	}
 	
 	/**

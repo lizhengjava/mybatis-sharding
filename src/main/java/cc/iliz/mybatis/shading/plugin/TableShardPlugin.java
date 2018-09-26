@@ -95,7 +95,7 @@ public class TableShardPlugin implements Interceptor {
 						log.debug("业务系统无dbStrategy实现");
 					}
 					
-					DbShardingConnectionProxy proxy = new DbShardingConnectionProxy(entry,dbStrategy);
+					DbShardingConnectionProxy proxy = new DbShardingConnectionProxy(entry,dbStrategy,arg);
 					//proxy connection
 					invocation.getArgs()[0] = getShardingConnection(proxy);
 				}
