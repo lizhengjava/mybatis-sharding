@@ -31,6 +31,12 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 	 */
 	public abstract Pattern getRegPattern();
 	
+	protected String getRegTableName(Matcher matcher){
+		String match = matcher.group(0);
+		String[] tn = match.split("\\s");
+		return tn[tn.length - 1];
+	}
+	
 	/**
 	 * 将匹配的sql转成分库后的sql
 	 * @param matcher 正则匹配
@@ -44,14 +50,28 @@ public abstract class BaseSqlTableParser implements SqlTableParser {
 		String dbName = null;
 		while(matcher.find()){
 			String g0 = matcher.group();
-			String tableName = matcher.group(1);
+			String tableName = getRegTableName(matcher);
 			if(StringUtils.hasText(tableName)){
-				String newTableName = tableNameConvert(getRealTableName(tableName).trim(),param);
-				dbName = DbShardingConnectionProxy.getDataSourceNameByTableName(newTableName,dbName);
-				entry.addItemToDbTables(dbName, newTableName);
-				//是否同一库检查
-				names.add(newTableName);
-				g0 = g0.replaceAll(tableName, newTableName);
+				String[] tableNames = tableName.split(",");
+				if(tableNames.length > 1){
+					StringBuffer sbt = new StringBuffer();
+					for(String tn : tableNames){
+						String ntn = tableNameConvert(getRealTableName(tn).trim(),param);
+						dbName = DbShardingConnectionProxy.getDataSourceNameByTableName(ntn,dbName);
+						entry.addItemToDbTables(dbName, ntn);
+						//是否同一库检查
+						names.add(ntn);
+						sbt.append(ntn).append(",");
+					}
+					g0 = g0.replaceAll(tableName, tableName.endsWith(",")?sbt.toString():sbt.substring(0, sbt.length() - 1));
+				}else{
+					String newTableName = tableNameConvert(getRealTableName(tableNames[0]).trim(),param);
+					dbName = DbShardingConnectionProxy.getDataSourceNameByTableName(newTableName,dbName);
+					entry.addItemToDbTables(dbName, newTableName);
+					//是否同一库检查
+					names.add(newTableName);
+					g0 = g0.replaceAll(tableName, tableName.endsWith(",")?newTableName+",":newTableName);
+				}
 			}
 			matcher.appendReplacement(sb, g0);
 		}

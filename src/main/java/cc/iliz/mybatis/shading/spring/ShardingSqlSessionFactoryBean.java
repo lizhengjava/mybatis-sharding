@@ -13,6 +13,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.util.StringUtils;
 
 import cc.iliz.mybatis.shading.plugin.TableShardPlugin;
+import cc.iliz.mybatis.shading.plugin.TableShardResourcePlugin;
 
 /**
  * ShardingSqlSessionFactoryBean是带有分表功能的sqlSessionFactory，在与spring的整合中只需要将{@code SqlSessionFactoryBean} 
@@ -40,6 +41,7 @@ public class ShardingSqlSessionFactoryBean extends SqlSessionFactoryBean impleme
 
 	private String shardingScanPackage;
 	private TableShardPlugin tableShardPlugin = new TableShardPlugin();
+	private TableShardResourcePlugin tableShardResourcePlugin = new TableShardResourcePlugin();
 	private ApplicationContext applicationContext;
 
 	public String getShardingScanPackage() {
@@ -71,8 +73,10 @@ public class ShardingSqlSessionFactoryBean extends SqlSessionFactoryBean impleme
 			}
 		}
 		tableShardPlugin.setApplicationContext(this.applicationContext);
+		tableShardResourcePlugin.setApplicationContext(this.applicationContext);
 		
 		sqlSessionFactory.getConfiguration().addInterceptor(tableShardPlugin);
+		sqlSessionFactory.getConfiguration().addInterceptor(tableShardResourcePlugin);
 		return sqlSessionFactory;
 	}
 

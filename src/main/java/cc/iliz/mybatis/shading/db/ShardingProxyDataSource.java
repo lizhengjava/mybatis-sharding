@@ -15,9 +15,17 @@ import javax.sql.DataSource;
 
 import org.apache.ibatis.logging.Log;
 import org.apache.ibatis.logging.LogFactory;
+import org.apache.ibatis.transaction.Transaction;
+import org.apache.ibatis.transaction.jdbc.JdbcTransaction;
 
+/**
+ * 分库实体类
+ * @author lizhengjava
+ *
+ */
 public class ShardingProxyDataSource implements DataSource,Comparable<ShardingProxyDataSource>,Comparator<ShardingProxyDataSource> {
 	private static final Log log = LogFactory.getLog(ShardingProxyDataSource.class);
+	private static final ThreadLocal<Transaction> transaction = new ThreadLocal<Transaction>();
 	private DataSource dataSource;
 	private String datasourceName;
 	private Set<String> tableNames;
@@ -103,14 +111,18 @@ public class ShardingProxyDataSource implements DataSource,Comparable<ShardingPr
 
 	@Override
 	public Connection getConnection() throws SQLException {
-		return dataSource.getConnection();
+		Connection con = dataSource.getConnection();
+		JdbcTransaction tx = new JdbcTransaction(con);
+		transaction.set(tx);
+		return con;
 	}
 
 	@Override
 	public Connection getConnection(String username, String password) throws SQLException {
-		
-		
-		return dataSource.getConnection(username, password);
+		Connection con = dataSource.getConnection(username, password);
+		JdbcTransaction tx = new JdbcTransaction(con);
+		transaction.set(tx);
+		return con;
 	}
 
 	
@@ -159,6 +171,17 @@ public class ShardingProxyDataSource implements DataSource,Comparable<ShardingPr
 	@Override
 	public int compare(ShardingProxyDataSource o1, ShardingProxyDataSource o2) {
 		return o2.getOrder().compareTo(o1.getOrder()) == 0 ? o1.getDatasourceName().compareTo(o2.getDatasourceName()) : o2.getOrder().compareTo(o1.getOrder());
+	}
+	
+	public static Transaction getThreadLocalTransaction(){
+		return transaction.get();
+	}
+	
+	public static void SetThreadLocalTransaction(Transaction value){
+		transaction.set(value);
+	}
+	public static void removeThreadLocalTransaction(){
+		transaction.remove();
 	}
 	
 }

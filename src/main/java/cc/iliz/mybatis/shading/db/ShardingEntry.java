@@ -8,6 +8,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.ibatis.mapping.SqlCommandType;
 import org.springframework.util.StringUtils;
 
+/**
+ * 分表实体类
+ * @author lizhengjava
+ *
+ */
 public class ShardingEntry {
 	private Map<String,Set<String>> dbTables=new ConcurrentHashMap<>();
 	private String sql;

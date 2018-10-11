@@ -67,9 +67,9 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 			List<ShardingProxyDataSource> list = dataSourceHolderSet.stream().filter(value -> {
 				return value.getDatasourceName().equalsIgnoreCase(dbName);
 			}).collect(Collectors.toList());
-			
+			//TODO 只读检查isread
 			Collections.sort(list);
-			return list.get(0).getDataSource();
+			return list.get(0);
 		}
 		return null;
 	}
@@ -94,6 +94,9 @@ public class DbShardingConnectionProxy implements InvocationHandler {
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		Connection con = getTarget();
 		if(con != null){
+			if(obj != null && obj instanceof Connection){
+				((Connection)obj).close();
+			}
 			return method.invoke(con, args);
 		}else{
 			return method.invoke(obj, args);

@@ -37,6 +37,9 @@ public class SqlTableParserTest {
 	public void SelectSqlTest(){
 //		String sql = "select * from test_table1";
 		String sql = "select DISTINCT history.member_id, info.sys_id, info.member_name,info.cert_code,info.mobile,info.member_status status, history.current_status,history.org_id,history.merchant_code, history.create_time,history.update_time, history.remark, org.ORG_ZHNAME,merchant.MERCHANT_NAME_ZH FROM member_cancel_history history INNER JOIN (select member_id,member_status,mobile,member_name,cert_type,cert_code,sys_id from member_info union all select member_id,member_status,mobile,member_name,cert_type,cert_code,sys_id from member_info_temp) info ON history.member_id = info.member_id LEFT JOIN mc_organization org ON history.org_id = org.ORG_CODE LEFT JOIN mc_merchant merchant ON history.merchant_code = merchant.MERCHANT_CODE where 1 =1 and history.id in (select max(id)from member_cancel_history group by member_id) ORDER BY history.create_time desc";
+//		String sql = "select * from (select * from test_table1)";
+//		String sql = "SELECT * FROM Study RIGHT JOIN Student ON Study.Sno=Student.Sno";
+//		String sql = "select tmp.uname,tmp.appname as appname from info,( select user.name as uname ,app.name as appname ,info.app_id as app_id from user,info,app where user.uid =info.uid and info.app_id = app.id) as  tmp where tmp.app_id = info.app_id";
 		ShardingEntry entry = sqlTableParser.markShardingTable(sql, new User());
 		System.out.println(entry.getSql());
 	}

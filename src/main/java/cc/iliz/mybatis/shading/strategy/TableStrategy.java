@@ -6,10 +6,12 @@ public interface TableStrategy {
 	
 	/**
 	 * 获取分表策略
-	 * @param parser sql parser
-	 * @param tableName orginal table name
-	 * @param param sql param
-	 * @return converted table name
+	 * @param parser sql解析器
+	 * @param tableName 原sql表名
+	 * @param param sql sql中的参数
+	 * @return 转换后表名
 	 */
-	String getShadeTableName(SqlTableParser parser,String tableName,Object param);
+	default String getShadeTableName(SqlTableParser parser,String tableName,Object param){
+		return tableName;
+	}
 }
