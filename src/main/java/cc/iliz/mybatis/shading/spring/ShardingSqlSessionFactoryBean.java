@@ -61,7 +61,7 @@ public class ShardingSqlSessionFactoryBean extends SqlSessionFactoryBean impleme
 	}
 
 	@Override
-	protected SqlSessionFactory buildSqlSessionFactory() throws IOException {
+	protected SqlSessionFactory buildSqlSessionFactory() throws Exception {
 		SqlSessionFactory sqlSessionFactory = super.buildSqlSessionFactory();
 		if (StringUtils.hasText(shardingScanPackage)) {
 			Properties prop = new Properties();
