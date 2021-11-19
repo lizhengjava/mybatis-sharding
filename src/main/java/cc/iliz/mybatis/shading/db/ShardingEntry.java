@@ -70,4 +70,14 @@ public class ShardingEntry {
 			dbTables.put(datasourceName, tableNames);
 		}
 	}
+
+	@java.lang.Override
+	public java.lang.String toString() {
+		return "ShardingEntry{" +
+				"dbTables=" + dbTables +
+				", sql='" + sql + '\'' +
+				", sqlCommandType=" + sqlCommandType +
+				", names=" + names +
+				'}';
+	}
 }
